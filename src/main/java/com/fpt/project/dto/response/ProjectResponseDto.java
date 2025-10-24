@@ -1,20 +1,21 @@
 package com.fpt.project.dto.response;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@AllArgsConstructor
-@NoArgsConstructor
+import java.util.Set;
+
 @Data
 @Builder
-public class ProjectResponse {
-    private int id;
+@AllArgsConstructor
+@NoArgsConstructor
+public class ProjectResponseDto {
+    private Integer id;
     private String name;
     private String description;
     private String deadline;
-    private String status;
-    private String createdBy;
+    private UserResponse createdBy;
+    private Set<UserResponse> members;
 }

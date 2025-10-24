@@ -5,7 +5,9 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.annotations.Check;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @AllArgsConstructor
@@ -20,4 +22,8 @@ public class User extends BaseEntity {
     private String password;
     @Column(name="display_name", nullable=false, length=80)
     private String displayName;
+    private String avatar;
+
+    @ManyToMany(mappedBy = "members", fetch = FetchType.LAZY)
+    private Set<Project> joinedProjects = new HashSet<>();
 }

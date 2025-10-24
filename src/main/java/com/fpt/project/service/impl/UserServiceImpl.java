@@ -1,13 +1,17 @@
 package com.fpt.project.service.impl;
 
+import com.fpt.project.dto.request.UpdateAccountRequest;
 import com.fpt.project.dto.response.UserResponse;
 import com.fpt.project.entity.User;
 import com.fpt.project.exception.ApiException;
 import com.fpt.project.repository.UserRepository;
 import com.fpt.project.service.UserService;
 import com.fpt.project.util.SecurityUtil;
+import com.fpt.project.util.Util;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +31,30 @@ public class UserServiceImpl implements UserService {
                 .id(user.getId())
                 .email(user.getEmail())
                 .displayName(user.getDisplayName())
+                .avatar(user.getAvatar())
+                .build();
+    }
+
+    @Override
+    public UserResponse updateAccount(UpdateAccountRequest data) throws ApiException, IOException {
+        String email = securityUtil.getEmailRequest();
+        if (email == null) {
+            throw new ApiException(400, "Tài khoản không tồn tại");
+        }
+        User user = userRepository.findByEmail(email);
+        if (data.getDisplayName() != null) {
+            user.setDisplayName(data.getDisplayName());
+        }
+        if (data.getAvatar() != null) {
+            String url = Util.uploadImage(data.getAvatar());
+            user.setAvatar(url);
+        }
+        userRepository.save(user);
+        return UserResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .displayName(user.getDisplayName())
+                .avatar(user.getAvatar())
                 .build();
     }
 }

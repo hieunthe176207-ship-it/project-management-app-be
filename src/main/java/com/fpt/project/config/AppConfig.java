@@ -22,6 +22,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -31,7 +33,7 @@ import static com.fpt.project.util.SecurityUtil.JWT_ALGORITHM;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-public class AppConfig {
+public class AppConfig implements WebMvcConfigurer {
     @Value("${secret-key}")
     private String secretKey;
 
@@ -59,6 +61,14 @@ public class AppConfig {
         };
     }
 
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // Cấu hình để truy cập tệp tin trong thư mục uploads
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:" + System.getProperty("user.dir") + "/uploads/");
+    }
+
+
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {
         JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
@@ -74,7 +84,7 @@ public class AppConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/auth/login", "/logout", "/auth/register", "/ws/**", "/project/all").permitAll()
+                        .requestMatchers("/auth/login", "/logout", "/auth/register", "/ws/**", "/project/all", "/uploads/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)

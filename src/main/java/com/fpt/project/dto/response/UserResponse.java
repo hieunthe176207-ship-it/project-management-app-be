@@ -14,4 +14,5 @@ public class UserResponse {
     String displayName;
     String email;
     String password;
+    String avatar;
 }

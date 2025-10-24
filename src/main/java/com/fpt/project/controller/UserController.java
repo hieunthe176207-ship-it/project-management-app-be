@@ -1,14 +1,16 @@
 package com.fpt.project.controller;
 
 import com.fpt.project.dto.ResponseSuccess;
+import com.fpt.project.dto.request.UpdateAccountRequest;
 import com.fpt.project.dto.response.UserResponse;
 import com.fpt.project.exception.ApiException;
 import com.fpt.project.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,4 +28,15 @@ public class UserController {
                 .data(userResponse)
                 .build());
     }
+
+    @PostMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateAccount(@ModelAttribute UpdateAccountRequest data) throws ApiException, IOException {
+        return ResponseEntity.ok(ResponseSuccess.builder()
+                .code(200)
+                .message("Cập nhật thông tin tài khoản thành công")
+                .data(userService.updateAccount(data))
+                .build());
+    }
+
+
 }
