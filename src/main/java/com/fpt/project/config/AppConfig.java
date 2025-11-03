@@ -83,8 +83,9 @@ public class AppConfig implements WebMvcConfigurer {
     public SecurityFilterChain filterChain(HttpSecurity http, CustomAuthenticationEntryPoint customAuthenticationEntryPoint) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/auth/login", "/logout", "/auth/register", "/ws/**", "/project/all", "/uploads/**").permitAll()
+                        .requestMatchers("/auth/login", "/logout", "/auth/register", "/ws/**","/ws-sockjs/**", "/project/all", "/uploads/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)

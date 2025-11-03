@@ -1,12 +1,17 @@
 package com.fpt.project.service.impl;
 
+import com.fpt.project.constant.Role;
 import com.fpt.project.dto.PageResponse;
 import com.fpt.project.dto.request.ProjectCreateRequest;
 import com.fpt.project.dto.response.ProjectResponseDto;
 import com.fpt.project.dto.response.UserResponse;
+import com.fpt.project.entity.ChatGroup;
 import com.fpt.project.entity.Project;
+import com.fpt.project.entity.ProjectMember;
 import com.fpt.project.entity.User;
 import com.fpt.project.exception.ApiException;
+import com.fpt.project.repository.ChatGroupRepository;
+import com.fpt.project.repository.ProjectMemberRepository;
 import com.fpt.project.repository.ProjectRepository;
 import com.fpt.project.repository.UserRepository;
 import com.fpt.project.service.ProjectService;
@@ -14,9 +19,12 @@ import com.fpt.project.util.SecurityUtil;
 import com.fpt.project.util.Util;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,34 +33,54 @@ public class ProjectServiecImpl implements ProjectService {
     private final ProjectRepository projectRepository;
     private final SecurityUtil securityUtil;
     private final UserRepository userRepository;
+    private final ProjectMemberRepository projectMemberRepository;
+    private final ChatGroupRepository chatGroupRepository;
 
     @Override
+    @Transactional
     public void saveProject(ProjectCreateRequest projectCreateRequest) throws ApiException {
         String email = securityUtil.getEmailRequest();
-
         User user = userRepository.findByEmail(email);
-
-        if(user == null) {
+        if (user == null) {
             throw new ApiException(400, "Tài khoản không tồn tại");
         }
-        Set<User> members = new HashSet<>();
-        members.add(user);
 
         Project project = Project.builder()
                 .name(projectCreateRequest.getName())
                 .description(projectCreateRequest.getDescription())
                 .createdBy(user)
                 .deadline(Util.parseToLocalDate(projectCreateRequest.getDeadline()))
-                .members(members)
                 .build();
-        projectRepository.save(project);
+
+
+
+        project = projectRepository.save(project);
+
+        ChatGroup chatGroup = new ChatGroup();
+        chatGroup.setName(projectCreateRequest.getName() + "-GroupChat");
+        chatGroup.setProject(project);
+        chatGroupRepository.save(chatGroup);
+
+        ProjectMember projectMember = new ProjectMember();
+        projectMember.setProject(project);
+        projectMember.setUser(user);
+        projectMember.setRole(Role.OWNER);
+
+        projectMemberRepository.save(projectMember);
     }
+
 
     @Override
     public List<ProjectResponseDto> findProjectByUser() throws ApiException {
         String email = securityUtil.getEmailRequest();
         List<Project> projects = projectRepository.findAllByUserEmail(email);
         List<ProjectResponseDto> projectResponseDtos = projects.stream().map(project -> {
+
+            List<ProjectMember> pm = project.getProjectMembers();
+            pm.stream().forEach(p -> {
+                System.out.println("Member: " + p.getUser().getDisplayName());
+            });
+
             return ProjectResponseDto.builder()
                     .id(project.getId())
                     .name(project.getName())
@@ -63,11 +91,11 @@ public class ProjectServiecImpl implements ProjectService {
                             .email(project.getCreatedBy().getEmail())
                             .avatar(project.getCreatedBy().getAvatar())
                             .build())
-                    .members(project.getMembers().stream().map(member -> UserResponse.builder()
-                            .displayName(member.getDisplayName())
-                            .email(member.getEmail())
-                            .avatar(member.getAvatar())
-                            .build()).collect(java.util.stream.Collectors.toSet()))
+                    .members(pm.stream().map(p -> UserResponse.builder()
+                            .displayName(p.getUser().getDisplayName())
+                            .email(p.getUser().getEmail())
+                            .avatar(p.getUser().getAvatar())
+                            .build()).toList())
                     .build();
         }).toList();
         return projectResponseDtos;
@@ -79,8 +107,7 @@ public class ProjectServiecImpl implements ProjectService {
                 .orElseThrow(() -> new ApiException(404, "Project not found"));
 
         User owner = project.getCreatedBy();
-        Set<User> members = project.getMembers();
-
+        List<ProjectMember> pm = project.getProjectMembers();
         return ProjectResponseDto.builder()
                 .id(project.getId())
                 .name(project.getName())
@@ -91,11 +118,11 @@ public class ProjectServiecImpl implements ProjectService {
                         .email(owner.getEmail())
                         .avatar(owner.getAvatar())
                         .build())
-                .members(members.stream().map(member -> UserResponse.builder()
-                        .displayName(member.getDisplayName())
-                        .email(member.getEmail())
-                        .avatar(member.getAvatar())
-                        .build()).collect(java.util.stream.Collectors.toSet()))
+                .members(pm.stream().map(p -> UserResponse.builder()
+                        .displayName(p.getUser().getDisplayName())
+                        .email(p.getUser().getEmail())
+                        .avatar(p.getUser().getAvatar())
+                        .build()).toList())
                 .build();
     }
 

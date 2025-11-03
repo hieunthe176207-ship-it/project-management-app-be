@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -17,5 +18,5 @@ public class ProjectResponseDto {
     private String description;
     private String deadline;
     private UserResponse createdBy;
-    private Set<UserResponse> members;
+    private List<UserResponse> members;
 }

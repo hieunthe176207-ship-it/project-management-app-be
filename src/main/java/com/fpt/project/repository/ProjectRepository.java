@@ -11,8 +11,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
     @Query("""
         select distinct p
         from Project p
-        left join p.members m
-        where m.email = :email
+        left join p.projectMembers pm
+        where pm.user.email = :email
     """)
     List<Project> findAllByUserEmail(@Param("email") String email);
 }

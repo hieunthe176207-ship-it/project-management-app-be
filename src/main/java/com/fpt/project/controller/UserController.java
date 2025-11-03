@@ -29,7 +29,7 @@ public class UserController {
                 .build());
     }
 
-    @PostMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateAccount(@ModelAttribute UpdateAccountRequest data) throws ApiException, IOException {
         return ResponseEntity.ok(ResponseSuccess.builder()
                 .code(200)
