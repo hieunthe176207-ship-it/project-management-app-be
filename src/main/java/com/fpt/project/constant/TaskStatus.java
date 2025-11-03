@@ -1,5 +1,5 @@
 package com.fpt.project.constant;
 
 public enum TaskStatus {
-    PENDING, IN_PROGRESS, DONE
+    TODO, IN_PROGRESS, DONE, IN_REVIEW
 }
