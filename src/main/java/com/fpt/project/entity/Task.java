@@ -1,5 +1,6 @@
 package com.fpt.project.entity;
 
+import com.fpt.project.constant.TaskStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,6 +19,9 @@ public class Task extends BaseEntity {
     @Lob
     private String description;
     private LocalDate dueDate;
+
+    @Enumerated(EnumType.STRING)
+    private TaskStatus status;
 
 
     @ManyToOne

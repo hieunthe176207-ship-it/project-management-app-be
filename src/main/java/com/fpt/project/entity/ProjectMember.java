@@ -21,5 +21,6 @@ public class ProjectMember extends BaseEntity {
     Project project;
 
     // Có thể thêm các trường khác như role, joinedDate, etc.
+    @Enumerated(EnumType.STRING)
     Role role;
 }
