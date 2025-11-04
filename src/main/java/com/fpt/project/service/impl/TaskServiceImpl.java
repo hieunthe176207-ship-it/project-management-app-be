@@ -1,81 +1,54 @@
 package com.fpt.project.service.impl;
 
-import com.fpt.project.constant.TaskStatus;
-import com.fpt.project.dto.request.TaskRequest;
-import com.fpt.project.entity.Project;
-import com.fpt.project.entity.Task;
-import com.fpt.project.entity.User;
-import com.fpt.project.repository.ProjectRepository;
-import com.fpt.project.repository.TaskRepository;
-import com.fpt.project.repository.UserRepository;
 import com.fpt.project.service.TaskService;
-
+import com.fpt.project.entity.Task;
+import com.fpt.project.repository.TaskRepository;
+import com.fpt.project.dto.response.TaskResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.HashSet;
+import java.util.stream.Collectors;
 import java.util.List;
-import java.util.Set;
 
 @Service
-@Transactional
-public class TaskServiceImpl implements TaskService {
+public class TaskServiceImpl implements TaskService { // Không báo lỗi nữa
 
     @Autowired
     private TaskRepository taskRepository;
 
-    @Autowired
-    private ProjectRepository projectRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    /**
-     * Lấy danh sách Task mà người dùng hiện tại được assign.
-     * Phục vụ cho màn "List Your Tasks Activity".
-     */
     @Override
-    public List<Task> getTasksForCurrentUser() {
-        // Lấy username (email) từ thông tin đăng nhập hiện tại
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    public List<TaskResponse> getTasksForCurrentUser() {
 
-        // Tìm user trong DB
-        User currentUser = userRepository.findByEmail(username)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + username));
-
-        // Lấy danh sách task theo user ID (qua quan hệ ManyToMany assignees)
-        return taskRepository.findByAssignees_Id(currentUser.getId());
-    }
-
-    /**
-     * Tạo mới một Task trong project cụ thể.
-     */
-    @Override
-    public Task createTask(TaskRequest taskRequest) {
-        // Khởi tạo entity Task
-        Task task = new Task();
-        task.setTitle(taskRequest.getTitle());
-        task.setDescription(taskRequest.getDescription());
-        task.setDueDate(taskRequest.getDueDate());
-        task.setStatus(TaskStatus.TODO); // Mặc định trạng thái ban đầu
-
-        // Liên kết Project
-        Project project = projectRepository.findById(taskRequest.getProjectId())
-                .orElseThrow(() -> new RuntimeException("Project not found with ID: " + taskRequest.getProjectId()));
-        task.setProject(project);
-
-        // Liên kết danh sách User được giao task
-        Set<User> assignees = new HashSet<>();
-        for (Long userId : taskRequest.getAssigneeIds()) {
-            User assignee = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
-            assignees.add(assignee);
+        // Code lấy ID của bạn (đoạn này đã đúng)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof Jwt)) {
+            throw new RuntimeException("Không thể lấy thông tin người dùng hiện tại.");
         }
-        task.setAssignees(assignees);
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        Integer currentUserId = null;
 
-        // Lưu vào DB
-        return taskRepository.save(task);
+        if (jwt.hasClaim("id")) {
+            Number idClaim = (Number) jwt.getClaim("id");
+            currentUserId = idClaim.intValue();
+
+        } else if (jwt.getSubject() != null) {
+            try {
+                currentUserId = Integer.parseInt(jwt.getSubject());
+            } catch (NumberFormatException e) {
+                throw new RuntimeException("Lỗi token: 'sub' (subject) là email, nhưng không tìm thấy claim 'id'.", e);
+            }
+        }
+        if (currentUserId == null) {
+            throw new RuntimeException("Không thể lấy ID người dùng từ JWT token.");
+        }
+
+        List<Task> tasksFromDb = taskRepository.findByAssignees_Id(currentUserId);
+
+        return tasksFromDb.stream()
+                .map(TaskResponse::new)
+                .collect(Collectors.toList());
+
     }
 }

@@ -1,10 +1,9 @@
 package com.fpt.project.service;
 
-
-import com.fpt.project.entity.Task;
+import com.fpt.project.dto.response.TaskResponse;
 import java.util.List;
 
 public interface TaskService {
-    List<Task> getTasksForCurrentUser();
+    List<TaskResponse> getTasksForCurrentUser();
 
 }

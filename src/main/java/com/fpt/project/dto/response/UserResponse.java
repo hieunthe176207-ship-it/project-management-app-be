@@ -15,4 +15,11 @@ public class UserResponse {
     String email;
     String password;
     String avatar;
+
+    public UserResponse(com.fpt.project.entity.User user) {
+        this.id = user.getId();
+        this.email = user.getEmail();
+        this.displayName = user.getDisplayName();
+        this.avatar = user.getAvatar();
+    }
 }

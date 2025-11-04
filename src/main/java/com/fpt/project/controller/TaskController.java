@@ -1,7 +1,7 @@
 package com.fpt.project.controller;
 
 import com.fpt.project.service.TaskService;
-import com.fpt.project.entity.Task;
+import com.fpt.project.dto.response.TaskResponse;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,8 +18,8 @@ public class TaskController {
     private TaskService taskService;
 
     @GetMapping("/my-tasks")
-    public ResponseEntity<List<Task>> getMyTasks() {
-        List<Task> tasks = taskService.getTasksForCurrentUser();
+    public ResponseEntity<List<TaskResponse>> getMyTasks() {
+        List<TaskResponse> tasks = taskService.getTasksForCurrentUser();
         return ResponseEntity.ok(tasks);
     }
 
