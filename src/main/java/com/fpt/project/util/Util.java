@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.UUID;
@@ -20,6 +21,10 @@ public class Util {
      * Chuyển String -> LocalDate theo định dạng yyyy/MM/dd
      * Nếu sai format sẽ ném IllegalArgumentException
      */
+    public static LocalDate getCurrentLocalDate() {
+        return LocalDate.now(ZoneId.systemDefault());
+    }
+
     public static LocalDate parseToLocalDate(String dateString) throws ApiException {
         try {
             return LocalDate.parse(dateString, FORMATTER);
