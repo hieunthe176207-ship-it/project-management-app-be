@@ -1,21 +1,25 @@
 package com.fpt.project.service.impl;
 
+import com.fpt.project.dto.request.UpdateGroupChatRequest;
 import com.fpt.project.dto.response.ChatGroupResponse;
 import com.fpt.project.dto.response.MessageResponseDto;
 import com.fpt.project.dto.response.UserResponse;
 import com.fpt.project.entity.ChatGroup;
 import com.fpt.project.entity.ProjectMember;
 import com.fpt.project.entity.User;
+import com.fpt.project.exception.ApiException;
 import com.fpt.project.repository.ChatGroupRepository;
 import com.fpt.project.repository.MessageRepository;
 import com.fpt.project.repository.ProjectMemberRepository;
 import com.fpt.project.repository.UserRepository;
 import com.fpt.project.service.GroupChatService;
 import com.fpt.project.util.SecurityUtil;
+import com.fpt.project.util.Util;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 
@@ -82,5 +86,24 @@ public class ChatGroupServeImp implements GroupChatService {
         Integer maxId = messageRepository.findMaxIdByGroup(groupId);
         // cập nhật mốc đã đọc
         projectMemberRepository.markProjectAsRead(projectId, user.getId(), maxId);
+    }
+
+    @Override
+    public void updateGroupChat(UpdateGroupChatRequest data, int id) throws ApiException, IOException {
+        ChatGroup chatGroup = chatGroupRepository.findById(id).get();
+        if(chatGroup == null){
+            throw new ApiException(404, "Không tìm thấy");
+        }
+
+        if(data.getAvatar() != null){
+            String url =  Util.uploadImage(data.getAvatar());
+            chatGroup.setAvatar(url);
+        }
+
+        if(data.getName() != null){
+            chatGroup.setName(data.getName());
+        }
+
+        chatGroupRepository.save(chatGroup);
     }
 }

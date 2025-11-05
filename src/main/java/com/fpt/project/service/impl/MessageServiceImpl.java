@@ -100,7 +100,8 @@ public class MessageServiceImpl implements MessageService {
                         Map.of(
                                 "groupId", String.valueOf(data.getChatGroupId()),
                                 "senderName", user.getDisplayName(),
-                                "content", data.getContent()
+                                "content", data.getContent(),
+                                "type", "MESSAGE"
                         )
                 );
             }

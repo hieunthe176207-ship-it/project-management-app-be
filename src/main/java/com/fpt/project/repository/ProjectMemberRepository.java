@@ -37,4 +37,7 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, In
     void markProjectAsRead(@Param("projectId") Integer projectId,
                           @Param("userId") Integer userId,
                           @Param("maxId") Integer maxId);
+
+    @Query("SELECT pm FROM ProjectMember pm WHERE pm.project.id = ?1 AND pm.user.id = ?2")
+    ProjectMember findUserByProjectIdAndUserId(Integer projectId, Integer userId);
 }

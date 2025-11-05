@@ -68,6 +68,32 @@ public class ProjectController {
                 .build());
     }
 
+    @PatchMapping("/update/{id}")
+    public ResponseEntity<?> updateMemberRole(@RequestParam("role") int role){
+        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
+                .code(200)
+                .message("Update member success")
+                .build());
+    }
+
+    @DeleteMapping("/delete-member/{id}")
+    public ResponseEntity<?> deleteMember(@RequestParam("role") int role, @PathVariable int id){
+        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
+                .code(200)
+                .message("Update member success")
+                .build());
+    }
+
+    @DeleteMapping("/delete-project/{id}")
+    public ResponseEntity<?> deleteProject(@PathVariable int id){
+        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
+                .code(200)
+                .message("Update member success")
+                .build());
+    }
+
+
+
 
 
 }

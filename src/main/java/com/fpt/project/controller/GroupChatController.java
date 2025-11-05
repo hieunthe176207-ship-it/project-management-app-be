@@ -1,6 +1,7 @@
 package com.fpt.project.controller;
 
 import com.fpt.project.dto.ResponseSuccess;
+import com.fpt.project.dto.request.UpdateGroupChatRequest;
 import com.fpt.project.service.GroupChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,4 +30,13 @@ public class GroupChatController {
                 .message("Đánh dấu tin nhắn đã đọc thành công")
                 .build());
     }
+    @PutMapping("/update")
+    public ResponseEntity<?> updateGroupChat(@ModelAttribute UpdateGroupChatRequest data){
+        return ResponseEntity.ok(ResponseSuccess.builder()
+                        .code(200)
+                        .message("Update thành công")
+                .build());
+
+    }
+
 }

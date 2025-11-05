@@ -1,7 +1,7 @@
 package com.fpt.project.constant;
 
 public enum Role {
-    OWNER("Chủ sở hữu"),
+    OWNER("Quản lý"),
     MEMBER("Thành viên");
 
     private final String nhan;

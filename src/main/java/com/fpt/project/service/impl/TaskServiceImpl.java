@@ -1,9 +1,21 @@
 package com.fpt.project.service.impl;
 
+import com.fpt.project.constant.Role;
+import com.fpt.project.dto.request.CreateTaskRequestDto;
+import com.fpt.project.entity.Project;
+import com.fpt.project.entity.ProjectMember;
+import com.fpt.project.entity.User;
+import com.fpt.project.exception.ApiException;
+import com.fpt.project.repository.ProjectMemberRepository;
+import com.fpt.project.repository.ProjectRepository;
+import com.fpt.project.repository.UserRepository;
 import com.fpt.project.service.TaskService;
 import com.fpt.project.entity.Task;
 import com.fpt.project.repository.TaskRepository;
 import com.fpt.project.dto.response.TaskResponse;
+import com.fpt.project.util.SecurityUtil;
+import com.fpt.project.util.Util;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +29,18 @@ public class TaskServiceImpl implements TaskService { // Không báo lỗi nữa
 
     @Autowired
     private TaskRepository taskRepository;
+
+    @Autowired
+    private ProjectMemberRepository projectMemberRepository;
+
+    @Autowired
+    private SecurityUtil securityUtil;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private ProjectRepository projectRepository;
 
     @Override
     public List<TaskResponse> getTasksForCurrentUser() {
@@ -51,4 +75,43 @@ public class TaskServiceImpl implements TaskService { // Không báo lỗi nữa
                 .collect(Collectors.toList());
 
     }
+
+    @Override
+    public void addTaskToProject(CreateTaskRequestDto data) throws ApiException {
+
+        String email = securityUtil.getEmailRequest();
+
+        User user = userRepository.findByEmail(email);
+
+        Project project = projectRepository.findById(data.getProjectId())
+                .orElseThrow(() -> new ApiException(404, "Dự án không tồn tại."));
+        ProjectMember projectMember = projectMemberRepository.findUserByProjectIdAndUserId(project.getId(), user.getId());
+
+        if (projectMember == null) {
+            throw new ApiException(400, "Bạn không phải thành viên của dự án này.");
+        }
+        if(projectMember.getRole() != Role.OWNER){
+            throw new ApiException(400, "Chỉ quản lý dự án mới có quyền thêm công việc.");
+        }
+        Task newTask = new Task();
+        newTask.setTitle(data.getTitle());
+        newTask.setDescription(data.getDescription());
+        newTask.setDueDate(Util.parseToLocalDate(data.getDueDate()));
+        newTask.setProject(project);
+        newTask.setCreatedBy(user);
+
+        for (Integer assigneeId : data.getAssigneeIds()) {
+            User assignee = userRepository.findById(assigneeId)
+                    .orElseThrow(() -> new ApiException(404, "Người được giao với ID " + assigneeId + " không tồn tại."));
+            ProjectMember assigneeMember = projectMemberRepository.findUserByProjectIdAndUserId(project.getId(), assigneeId);
+            if (assigneeMember == null) {
+                throw new ApiException(400, "Người được giao " + assignee.getDisplayName() + " không phải thành viên của dự án.");
+            }
+            newTask.getAssignees().add(assignee);
+        }
+
+        taskRepository.save(newTask);
+    }
+
+
 }

@@ -23,4 +23,6 @@ public class Message extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "group_id")
     private ChatGroup group;
+
+
 }
