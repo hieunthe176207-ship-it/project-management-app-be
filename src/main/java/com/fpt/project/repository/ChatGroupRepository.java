@@ -22,4 +22,9 @@ public interface ChatGroupRepository extends JpaRepository<ChatGroup, Integer> {
     WHERE pm.user.id = :userId
 """)
     List<ChatGroupResponse> findByUser(@Param("userId") Integer userId);
+
+
+    @Query("SELECT c.project.id FROM ChatGroup c WHERE c.id = ?1")
+    Integer findProjectIdById(Integer groupId);
+
 }

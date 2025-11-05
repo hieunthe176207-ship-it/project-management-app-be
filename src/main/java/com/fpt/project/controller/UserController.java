@@ -38,5 +38,23 @@ public class UserController {
                 .build());
     }
 
+    @GetMapping("/get-all/{id}")
+    public ResponseEntity<ResponseSuccess<?>> getAllUsers(@PathVariable int id) throws ApiException {
+        return ResponseEntity.ok(ResponseSuccess.builder()
+                .code(200)
+                .message("Lấy danh sách người dùng thành công")
+                .data(userService.getAllUsers(id))
+                .build());
+    }
+
+    @PostMapping("/update-token-fcm")
+    public ResponseEntity<ResponseSuccess<?>> updateTokenFcm(@RequestParam String token) {
+        userService.updateTokenFcm(token);
+        return ResponseEntity.ok(ResponseSuccess.builder()
+                .code(200)
+                .message("Cập nhật token FCM thành công")
+                .build());
+    }
+
 
 }

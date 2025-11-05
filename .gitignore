@@ -31,3 +31,12 @@ build/
 
 ### VS Code ###
 .vscode/
+!**/src/main/resources/google-services.json
+**/src/main/resources/google-services.json
+# Firebase/Google service account
+!**/google-services.json3
+
+**/google-services.json
+
+# Firebase/Google service account
+**/google-services.json

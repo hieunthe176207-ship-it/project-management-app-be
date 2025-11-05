@@ -1,5 +1,6 @@
 package com.fpt.project.dto.response;
 
+import com.fpt.project.entity.Message;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,7 +15,8 @@ public class ChatGroupResponse {
     private String name;
     private String avatar;
     private UserResponse lastUser;
-    private String lastMessage;
+    private MessageResponseDto lastMessage;
+    private boolean hasNew;
 
     public ChatGroupResponse(Integer id, String name, String avatar) {
         this.id = id;

@@ -126,4 +126,28 @@ public class ProjectServiecImpl implements ProjectService {
                 .build();
     }
 
+    @Override
+    public void addMembersToProject(Integer projectId, List<Integer> userIds) throws ApiException {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ApiException( 400, "Project not found"));
+        for (Integer userId : userIds) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ApiException(404, "User not found: " + userId));
+            boolean exists = projectMemberRepository.existsByProjectIdAndUserId(projectId, userId);
+            if (!exists) {
+                ProjectMember member = new ProjectMember();
+                member.setProject(project);
+                member.setUser(user);
+                member.setRole(Role.MEMBER);
+                projectMemberRepository.save(member);
+            }
+        }
+    }
+
+
+    @Override
+    public List<UserResponse> getUsersByProjectId(Integer projectId) throws ApiException {
+        return projectRepository.findUsersByIdProject(projectId);
+    }
+
 }

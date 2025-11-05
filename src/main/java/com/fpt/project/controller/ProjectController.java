@@ -48,4 +48,26 @@ public class ProjectController {
                 .data(project)
                 .build());
     }
+
+    @GetMapping("/member/{projectId}")
+    public ResponseEntity<?> getUsersByProjectId(@PathVariable Integer projectId) throws ApiException {
+        List<?> users = projectService.getUsersByProjectId(projectId);
+        return ResponseEntity.ok(ResponseSuccess.<List<?>>builder()
+                .code(200)
+                .message("Users retrieved successfully")
+                .data(users)
+                .build());
+    }
+
+    @PostMapping("/add-members/{projectId}")
+    public ResponseEntity<ResponseSuccess<Void>> addMembersToProject(@PathVariable Integer projectId, @RequestBody List<Integer> userIds) throws ApiException {
+        projectService.addMembersToProject(projectId, userIds);
+        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
+                .code(200)
+                .message("Members added successfully")
+                .build());
+    }
+
+
+
 }

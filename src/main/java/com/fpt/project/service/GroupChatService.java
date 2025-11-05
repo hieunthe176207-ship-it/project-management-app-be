@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface GroupChatService{
     List<ChatGroupResponse> getGroupChatsByUserId();
+    void markMessagesAsRead(Integer groupId);
 }

@@ -23,7 +23,6 @@ public class Task extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private TaskStatus status;
 
-
     @ManyToOne
     @JoinColumn(name="project_id", nullable=false)
     private Project project;
