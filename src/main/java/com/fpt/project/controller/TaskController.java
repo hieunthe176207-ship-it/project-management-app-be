@@ -1,13 +1,15 @@
 package com.fpt.project.controller;
 
+import com.fpt.project.dto.ResponseSuccess;
+import com.fpt.project.dto.request.CreateTaskRequestDto;
+import com.fpt.project.exception.ApiException;
 import com.fpt.project.service.TaskService;
 import com.fpt.project.dto.response.TaskResponse;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+
 import java.util.List;
 
 @RestController
@@ -23,6 +25,15 @@ public class TaskController {
         return ResponseEntity.ok(tasks);
     }
 
+    @PostMapping("/create")
+    public ResponseEntity<String> createTask(@RequestBody CreateTaskRequestDto createTaskRequestDto) throws ApiException {
+        // Logic to create a task
+        taskService.addTaskToProject(createTaskRequestDto);
+        return ResponseEntity.ok(ResponseSuccess.<String>builder()
+                .code(200)
+                .message("Task created successfully")
+                .build().toString());
+    }
 
 
 

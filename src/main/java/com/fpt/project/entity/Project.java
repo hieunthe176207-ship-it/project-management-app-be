@@ -18,8 +18,7 @@ import java.util.Set;
 @Builder
 public class Project extends BaseEntity {
     private String name;
-
-
+    private int isPublic ; // 0: private, 1: public
     @ManyToOne(optional=false)
     @JoinColumn(name="created_by")
     private User createdBy;
@@ -29,4 +28,8 @@ public class Project extends BaseEntity {
     private List<Task> tasks;
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     List<ProjectMember> projectMembers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<JoinRequest> joinRequests = new ArrayList<>();
+
 }

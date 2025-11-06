@@ -93,6 +93,16 @@ public class TaskServiceImpl implements TaskService { // Không báo lỗi nữa
         if(projectMember.getRole() != Role.OWNER){
             throw new ApiException(400, "Chỉ quản lý dự án mới có quyền thêm công việc.");
         }
+
+        //compare due date with project end date
+        if(Util.parseToLocalDate(data.getDueDate()).isAfter(project.getDeadline())){
+            throw new ApiException(400, "Ngày hết hạn công việc không được sau ngày kết thúc dự án.");
+        }
+
+        //compare due date with project now
+        if(Util.parseToLocalDate(data.getDueDate()).isBefore(Util.getCurrentLocalDate())){
+            throw new ApiException(400, "Ngày hết hạn công việc không được trước ngày hiện tại.");
+        }
         Task newTask = new Task();
         newTask.setTitle(data.getTitle());
         newTask.setDescription(data.getDescription());

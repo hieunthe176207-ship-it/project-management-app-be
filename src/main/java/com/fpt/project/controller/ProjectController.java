@@ -92,8 +92,43 @@ public class ProjectController {
                 .build());
     }
 
+    @GetMapping("/public-projects")
+    public ResponseEntity<?> getAllPublicProjects() throws ApiException {
+        List<ProjectResponseDto> projects = projectService.getAllPublicProjects();
+        return ResponseEntity.ok(ResponseSuccess.<List<ProjectResponseDto>>builder()
+                .code(200)
+                .message("Public projects retrieved successfully")
+                .data(projects)
+                .build());
+    }
 
+    @PostMapping("/join-request")
+    public ResponseEntity<ResponseSuccess<Void>> joinPublicProject(@RequestParam Integer projectId) throws ApiException {
+        projectService.requestJoinPublicProject(projectId);
+        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
+                .code(200)
+                .message("Joined public project successfully")
+                .build());
+    }
 
+    @GetMapping("/get-join-requests/{projectId}")
+    public ResponseEntity<?> getJoinRequests(@PathVariable Integer projectId) throws ApiException {
+        return ResponseEntity.ok(ResponseSuccess.<List<?>>builder()
+                .code(200)
+                .data(projectService.getPendingJoinRequests(projectId))
+                .message("Join requests retrieved successfully")
+                .build());
+    }
 
-
+    @PostMapping("/handle-join-request")
+    public ResponseEntity<ResponseSuccess<Void>> handleJoinRequest(
+            @RequestParam Integer projectId,
+            @RequestParam Integer userId,
+            @RequestParam boolean isApproved) throws ApiException {
+        projectService.handleJoinRequest(projectId, userId, isApproved);
+        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
+                .code(200)
+                .message("Join request handled successfully")
+                .build());
+    }
 }
