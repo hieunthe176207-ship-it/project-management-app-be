@@ -11,4 +11,5 @@ public class ProjectCreateRequest {
     private String name;
     private String description;
     private String deadline;
+    private int isPublic;
 }

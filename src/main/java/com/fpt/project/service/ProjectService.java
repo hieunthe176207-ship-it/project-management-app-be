@@ -15,4 +15,12 @@ public interface ProjectService {
     void addMembersToProject(Integer projectId, List<Integer> userIds) throws ApiException;
 
     List<UserResponse> getUsersByProjectId(Integer projectId) throws ApiException;
+
+    List<ProjectResponseDto> getAllPublicProjects() throws ApiException;
+
+    void requestJoinPublicProject(Integer projectId) throws ApiException;
+
+    List<UserResponse> getPendingJoinRequests(Integer projectId) throws ApiException;
+
+    void handleJoinRequest(Integer projectId, Integer userId, boolean isApproved) throws ApiException;
 }

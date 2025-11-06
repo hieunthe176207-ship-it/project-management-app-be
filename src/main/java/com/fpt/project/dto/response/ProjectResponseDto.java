@@ -18,5 +18,7 @@ public class ProjectResponseDto {
     private String description;
     private String deadline;
     private UserResponse createdBy;
+    private int isPublic;
+    private int countJoinRequest;
     private List<UserResponse> members;
 }

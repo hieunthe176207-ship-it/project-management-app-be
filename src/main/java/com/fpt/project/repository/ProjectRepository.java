@@ -30,4 +30,17 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
         order by u.displayName asc
     """)
     List<UserResponse> findUsersByIdProject(Integer projectId);
+
+    @Query("""
+    select p
+    from Project p
+    where p.isPublic = 1
+    and p.id not in (
+        select pm.project.id
+        from ProjectMember pm
+        where pm.user.id = :userId
+    )
+""")
+    List<Project> findAllPublicProjectsNotJoinedByUser(@Param("userId") Integer userId);
+
 }
