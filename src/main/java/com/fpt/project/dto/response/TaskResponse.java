@@ -2,42 +2,31 @@ package com.fpt.project.dto.response;
 
 import com.fpt.project.constant.TaskStatus;
 import com.fpt.project.entity.Task;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class TaskResponse {
-    private Integer id;
+    private Long id;
     private String title;
     private String description;
-    private LocalDate dueDate;
+    private String dueDate;
     private TaskStatus status;
-
-    private ProjectResponse project;
+    private Long projectId;
     private UserResponse createdBy;
-    private Set<UserResponse> assignees;
+    private List<UserResponse> assignees;
+    private String createdAt;
+    private String updatedAt;
+
 
     public TaskResponse(Task task) {
-        this.id = task.getId();
-        this.title = task.getTitle();
-        this.description = task.getDescription();
-        this.dueDate = task.getDueDate();
-        this.status = task.getStatus();
-
-        if (task.getProject() != null) {
-            this.project = new ProjectResponse(task.getProject());
-        }
-        if (task.getCreatedBy() != null) {
-            this.createdBy = new UserResponse(task.getCreatedBy());
-        }
-        if (task.getAssignees() != null) {
-            this.assignees = task.getAssignees().stream()
-                    .map(UserResponse::new)
-                    .collect(Collectors.toSet());
-        }
     }
 }
