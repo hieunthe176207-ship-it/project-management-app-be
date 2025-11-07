@@ -1,4 +1,4 @@
-package com.fpt.project.chat;
+package com.fpt.project.controller;
 
 import com.fpt.project.dto.request.ChatMessage;
 import com.fpt.project.util.SecurityUtil;
