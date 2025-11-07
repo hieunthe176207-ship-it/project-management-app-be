@@ -1,19 +1,18 @@
 package com.fpt.project.dto.response;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
+@FieldDefaults(level = lombok.AccessLevel.PRIVATE)
 @Builder
-public class ChatGroupDetailResponseDto {
-    private int id;
-    private String name;
-    private String avatar;
-    private List<MessageResponseDto> messages;
+public class SubTaskResponse {
+    int id;
+    String title;
+    boolean completed;
 }

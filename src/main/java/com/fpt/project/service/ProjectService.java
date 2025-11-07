@@ -2,6 +2,7 @@ package com.fpt.project.service;
 
 import com.fpt.project.dto.request.ProjectCreateRequest;
 import com.fpt.project.dto.response.ProjectResponseDto;
+import com.fpt.project.dto.response.SearchResponseDto;
 import com.fpt.project.dto.response.UserResponse;
 import com.fpt.project.entity.Project;
 import com.fpt.project.exception.ApiException;
@@ -23,4 +24,10 @@ public interface ProjectService {
     List<UserResponse> getPendingJoinRequests(Integer projectId) throws ApiException;
 
     void handleJoinRequest(Integer projectId, Integer userId, boolean isApproved) throws ApiException;
+
+    void updateRoleMember(Integer projectId, Integer userId, int newRole) throws ApiException;
+
+    void deleteMember(Integer projectId, Integer userId) throws ApiException;
+
+    SearchResponseDto searchGlobally(String keyword) throws ApiException;
 }

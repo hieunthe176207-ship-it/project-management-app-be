@@ -1,19 +1,17 @@
 package com.fpt.project.dto.response;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 @Builder
-public class ChatGroupDetailResponseDto {
-    private int id;
-    private String name;
-    private String avatar;
-    private List<MessageResponseDto> messages;
+public class SearchResponseDto {
+    List<ProjectResponseDto> projects;
+    List<TaskResponseDto> tasks;
 }
