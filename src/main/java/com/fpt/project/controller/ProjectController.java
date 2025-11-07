@@ -48,4 +48,87 @@ public class ProjectController {
                 .data(project)
                 .build());
     }
+
+    @GetMapping("/member/{projectId}")
+    public ResponseEntity<?> getUsersByProjectId(@PathVariable Integer projectId) throws ApiException {
+        List<?> users = projectService.getUsersByProjectId(projectId);
+        return ResponseEntity.ok(ResponseSuccess.<List<?>>builder()
+                .code(200)
+                .message("Users retrieved successfully")
+                .data(users)
+                .build());
+    }
+
+    @PostMapping("/add-members/{projectId}")
+    public ResponseEntity<ResponseSuccess<Void>> addMembersToProject(@PathVariable Integer projectId, @RequestBody List<Integer> userIds) throws ApiException {
+        projectService.addMembersToProject(projectId, userIds);
+        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
+                .code(200)
+                .message("Members added successfully")
+                .build());
+    }
+
+    @PatchMapping("/update/{id}")
+    public ResponseEntity<?> updateMemberRole(@RequestParam("role") int role){
+        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
+                .code(200)
+                .message("Update member success")
+                .build());
+    }
+
+    @DeleteMapping("/delete-member/{id}")
+    public ResponseEntity<?> deleteMember(@RequestParam("role") int role, @PathVariable int id){
+        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
+                .code(200)
+                .message("Update member success")
+                .build());
+    }
+
+    @DeleteMapping("/delete-project/{id}")
+    public ResponseEntity<?> deleteProject(@PathVariable int id){
+        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
+                .code(200)
+                .message("Update member success")
+                .build());
+    }
+
+    @GetMapping("/public-projects")
+    public ResponseEntity<?> getAllPublicProjects() throws ApiException {
+        List<ProjectResponseDto> projects = projectService.getAllPublicProjects();
+        return ResponseEntity.ok(ResponseSuccess.<List<ProjectResponseDto>>builder()
+                .code(200)
+                .message("Public projects retrieved successfully")
+                .data(projects)
+                .build());
+    }
+
+    @PostMapping("/join-request")
+    public ResponseEntity<ResponseSuccess<Void>> joinPublicProject(@RequestParam Integer projectId) throws ApiException {
+        projectService.requestJoinPublicProject(projectId);
+        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
+                .code(200)
+                .message("Joined public project successfully")
+                .build());
+    }
+
+    @GetMapping("/get-join-requests/{projectId}")
+    public ResponseEntity<?> getJoinRequests(@PathVariable Integer projectId) throws ApiException {
+        return ResponseEntity.ok(ResponseSuccess.<List<?>>builder()
+                .code(200)
+                .data(projectService.getPendingJoinRequests(projectId))
+                .message("Join requests retrieved successfully")
+                .build());
+    }
+
+    @PostMapping("/handle-join-request")
+    public ResponseEntity<ResponseSuccess<Void>> handleJoinRequest(
+            @RequestParam Integer projectId,
+            @RequestParam Integer userId,
+            @RequestParam boolean isApproved) throws ApiException {
+        projectService.handleJoinRequest(projectId, userId, isApproved);
+        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
+                .code(200)
+                .message("Join request handled successfully")
+                .build());
+    }
 }

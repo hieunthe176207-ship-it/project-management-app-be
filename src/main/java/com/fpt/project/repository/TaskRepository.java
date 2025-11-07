@@ -9,8 +9,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Integer> {
+    List<Task> findByAssignees_Id(Integer userId);
 
     List<Task> findByProjectIdAndStatus(Integer projectId, TaskStatus status);
 

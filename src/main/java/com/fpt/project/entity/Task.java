@@ -6,6 +6,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @EqualsAndHashCode(callSuper = true)
@@ -23,7 +24,6 @@ public class Task extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private TaskStatus status;
 
-
     @ManyToOne
     @JoinColumn(name="project_id", nullable=false)
     private Project project;
@@ -39,4 +39,7 @@ public class Task extends BaseEntity {
             inverseJoinColumns=@JoinColumn(name="user_id")
     )
     private Set<User> assignees = new HashSet<>();
+
+    @OneToMany(mappedBy="task", cascade=CascadeType.ALL, orphanRemoval=true)
+    List<SubTask> subTasks;
 }

@@ -23,4 +23,6 @@ public class ProjectMember extends BaseEntity {
     // Có thể thêm các trường khác như role, joinedDate, etc.
     @Enumerated(EnumType.STRING)
     Role role;
+
+    private int lastReadMessageId = 0;
 }

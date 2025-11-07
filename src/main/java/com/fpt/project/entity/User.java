@@ -27,6 +27,8 @@ public class User extends BaseEntity {
 
     String avatar;
 
+    String tokenFcm;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     List<ProjectMember> projectMembers = new ArrayList<>();
 }

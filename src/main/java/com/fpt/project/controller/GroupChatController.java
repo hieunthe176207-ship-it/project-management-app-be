@@ -1,12 +1,11 @@
 package com.fpt.project.controller;
 
 import com.fpt.project.dto.ResponseSuccess;
+import com.fpt.project.dto.request.UpdateGroupChatRequest;
 import com.fpt.project.service.GroupChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/group-chat")
 @RequiredArgsConstructor
@@ -21,4 +20,23 @@ public class GroupChatController {
                 .data(groupChatService.getGroupChatsByUserId())
                 .build());
     }
+
+    @PatchMapping("/mark-read/{groupId}")
+    public ResponseEntity<?> markMessagesAsRead(@PathVariable Integer groupId) {
+        System.out.println("Marking messages as read for groupId: " + groupId);
+        groupChatService.markMessagesAsRead(groupId);
+        return ResponseEntity.ok(ResponseSuccess.builder()
+                .code(200)
+                .message("Đánh dấu tin nhắn đã đọc thành công")
+                .build());
+    }
+    @PutMapping("/update")
+    public ResponseEntity<?> updateGroupChat(@ModelAttribute UpdateGroupChatRequest data){
+        return ResponseEntity.ok(ResponseSuccess.builder()
+                        .code(200)
+                        .message("Update thành công")
+                .build());
+
+    }
+
 }

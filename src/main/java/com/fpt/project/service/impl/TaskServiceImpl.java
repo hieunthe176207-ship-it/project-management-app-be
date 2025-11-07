@@ -1,29 +1,38 @@
-
 package com.fpt.project.service.impl;
 
+import com.fpt.project.constant.Role;
 import com.fpt.project.constant.TaskStatus;
-import com.fpt.project.dto.request.TaskCreateRequest;
-import com.fpt.project.dto.request.TaskUpdateAssigneesRequest;
+import com.fpt.project.dto.request.CreateTaskRequestDto;
 import com.fpt.project.dto.request.TaskUpdateStatusRequest;
 import com.fpt.project.dto.response.KanbanBoardResponse;
-import com.fpt.project.dto.response.TaskResponse;
 import com.fpt.project.dto.response.UserResponse;
 import com.fpt.project.entity.Project;
-import com.fpt.project.entity.Task;
+import com.fpt.project.entity.ProjectMember;
 import com.fpt.project.entity.User;
 import com.fpt.project.exception.ApiException;
+import com.fpt.project.repository.ProjectMemberRepository;
 import com.fpt.project.repository.ProjectRepository;
 import com.fpt.project.repository.TaskRepository;
 import com.fpt.project.repository.UserRepository;
 import com.fpt.project.service.TaskService;
+import com.fpt.project.entity.Task;
+import com.fpt.project.repository.TaskRepository;
+import com.fpt.project.dto.response.TaskResponse;
 import com.fpt.project.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import com.fpt.project.util.Util;
+import org.checkerframework.checker.units.qual.A;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +42,8 @@ public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final SecurityUtil securityUtil;
+    private final ProjectMemberRepository projectMemberRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -69,139 +80,101 @@ public class TaskServiceImpl implements TaskService {
                 .build();
     }
 
-//    @Override
-//    public TaskResponse createTask(TaskCreateRequest request) throws ApiException {
-//        // Kiểm tra project tồn tại
-//        Project project = projectRepository.findById(request.getProjectId())
-//                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(), "Không tìm thấy dự án"));
-//
-//        // Lấy user hiện tại
-//
-//
-//        // Tạo task mới
-//        Task task = Task.builder()
-//                .title(request.getTitle())
-//                .description(request.getDescription())
-//                .dueDate(request.getDueDate())
-//                .status(TaskStatus.TODO) // Mặc định là TODO
-//                .project(project)
-//                .createdBy(currentUser)
-//                .assignees(new HashSet<>())
-//                .build();
-//
-//        // Thêm assignees nếu có
-////        if (request.getAssigneeIds() != null && !request.getAssigneeIds().isEmpty()) {
-////            List<User> assignees = new ArrayList<>();
-////            for (Integer assigneeId : request.getAssigneeIds()) {
-////                userRepository.findById(assigneeId).ifPresent(assignees::add);
-////            }
-////
-////            if (assignees.size() != request.getAssigneeIds().size()) {
-//////                throw new ApiException("Một số người được giao không tìm thấy", HttpStatus.BAD_REQUEST);
-////                throw new ApiException(HttpStatus.BAD_REQUEST.value(), "Một số người được giao không tìm thấy");
-////            }
-////            task.setAssignees(new HashSet<>(assignees));
-////        }
-//
-//        Task savedTask = taskRepository.save(task);
-//        return mapToTaskResponse(savedTask);
-//    }
+    @Override
+    public TaskResponse updateTaskStatus(Integer taskId, TaskUpdateStatusRequest request) throws ApiException {
+        // Kiểm tra task tồn tại
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(), "Không tìm thấy dự án"));
+
+        // Bỏ kiểm tra quyền
+
+        // Cập nhật trạng thái task
+        task.setStatus(request.getStatus());
+        Task updatedTask = taskRepository.save(task);
+
+        return mapToTaskResponse(updatedTask);
+    }
+    public List<TaskResponse> getTasksForCurrentUser() {
+        // Code lấy ID của bạn (đoạn này đã đúng)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof Jwt)) {
+            throw new RuntimeException("Không thể lấy thông tin người dùng hiện tại.");
+        }
+        Jwt jwt = (Jwt) authentication.getPrincipal();
+        Integer currentUserId = null;
+
+        if (jwt.hasClaim("id")) {
+            Number idClaim = (Number) jwt.getClaim("id");
+            currentUserId = idClaim.intValue();
+
+        } else if (jwt.getSubject() != null) {
+            try {
+                currentUserId = Integer.parseInt(jwt.getSubject());
+            } catch (NumberFormatException e) {
+                throw new RuntimeException("Lỗi token: 'sub' (subject) là email, nhưng không tìm thấy claim 'id'.", e);
+            }
+        }
+        if (currentUserId == null) {
+            throw new RuntimeException("Không thể lấy ID người dùng từ JWT token.");
+        }
+
+        List<Task> tasksFromDb = taskRepository.findByAssignees_Id(currentUserId);
+
+        return tasksFromDb.stream()
+                .map(TaskResponse::new)
+                .collect(Collectors.toList());
+
+    }
+
+    @Override
+    public void addTaskToProject(CreateTaskRequestDto data) throws ApiException {
+
+        String email = securityUtil.getEmailRequest();
+
+        User user = userRepository.findByEmail(email);
+
+        Project project = projectRepository.findById(data.getProjectId())
+                .orElseThrow(() -> new ApiException(404, "Dự án không tồn tại."));
+        ProjectMember projectMember = projectMemberRepository.findUserByProjectIdAndUserId(project.getId(), user.getId());
+
+        if (projectMember == null) {
+            throw new ApiException(400, "Bạn không phải thành viên của dự án này.");
+        }
+        if(projectMember.getRole() != Role.OWNER){
+            throw new ApiException(400, "Chỉ quản lý dự án mới có quyền thêm công việc.");
+        }
+
+        //compare due date with project end date
+        if(Util.parseToLocalDate(data.getDueDate()).isAfter(project.getDeadline())){
+            throw new ApiException(400, "Ngày hết hạn công việc không được sau ngày kết thúc dự án.");
+        }
+
+        //compare due date with project now
+        if(Util.parseToLocalDate(data.getDueDate()).isBefore(Util.getCurrentLocalDate())){
+            throw new ApiException(400, "Ngày hết hạn công việc không được trước ngày hiện tại.");
+        }
+        Task newTask = new Task();
+        newTask.setTitle(data.getTitle());
+        newTask.setDescription(data.getDescription());
+        newTask.setDueDate(Util.parseToLocalDate(data.getDueDate()));
+        newTask.setProject(project);
+        newTask.setCreatedBy(user);
+
+        for (Integer assigneeId : data.getAssigneeIds()) {
+            User assignee = userRepository.findById(assigneeId)
+                    .orElseThrow(() -> new ApiException(404, "Người được giao với ID " + assigneeId + " không tồn tại."));
+            ProjectMember assigneeMember = projectMemberRepository.findUserByProjectIdAndUserId(project.getId(), assigneeId);
+            if (assigneeMember == null) {
+                throw new ApiException(400, "Người được giao " + assignee.getDisplayName() + " không phải thành viên của dự án.");
+            }
+            newTask.getAssignees().add(assignee);
+        }
+
+        taskRepository.save(newTask);
+    }
 
 
 
-//    @Override
-//    public  TaskResponse updateTaskStatus(Long taskId, TaskUpdateStatusRequest request) throws ApiException{
-
-
-
-//    @Override
-//    public TaskResponse updateTaskStatus(Integer taskId, TaskUpdateStatusRequest request) throws ApiException{
-//        // Kiểm tra task tồn tại
-//        Task task = taskRepository.findById(taskId)
-////                .orElseThrow(() -> new ApiException("Không tìm thấy nhiệm vụ", HttpStatus.NOT_FOUND));
-//                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(), "Không tìm thấy dự án"));
-//
-//        // Kiểm tra quyền: chỉ người tạo hoặc assignee mới có thể update
-//        User currentUser = SecurityUtil.getCurrentUser();
-//        boolean hasPermission = task.getCreatedBy().getId() == currentUser.getId() ||
-//                task.getAssignees().contains(currentUser);
-//
-//        if (!hasPermission) {
-////            throw new ApiException("Bạn không có quyền cập nhật tác vụ này", HttpStatus.FORBIDDEN);
-//            throw new ApiException(HttpStatus.FAILED_DEPENDENCY.value(),"Bạn không có quyền cập nhật tác vụ này");
-//        }
-//
-//        task.setStatus(request.getStatus());
-//        Task updatedTask = taskRepository.save(task);
-//
-//        return mapToTaskResponse(updatedTask);
-//    }
-
-@Override
-public TaskResponse updateTaskStatus(Integer taskId, TaskUpdateStatusRequest request) throws ApiException {
-    // Kiểm tra task tồn tại
-    Task task = taskRepository.findById(taskId)
-            .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(), "Không tìm thấy dự án"));
-
-    // Bỏ kiểm tra quyền
-
-    // Cập nhật trạng thái task
-    task.setStatus(request.getStatus());
-    Task updatedTask = taskRepository.save(task);
-
-    return mapToTaskResponse(updatedTask);
-}
-
-//    @Override
-//    public TaskResponse updateTaskAssignees(Integer taskId, TaskUpdateAssigneesRequest request) throws ApiException{
-//        Task task = taskRepository.findById(taskId)
-////                .orElseThrow(() -> new ApiException("Không tìm thấy nhiệm vụ", HttpStatus.NOT_FOUND.value()));
-//                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(), "Không tìm thấy nhiệm vụ"));
-//
-//        // Kiểm tra quyền: chỉ người tạo task mới có thể update assignees
-//        User currentUser = SecurityUtil.getCurrentUser();
-//        if (task.getCreatedBy().getId() != currentUser.getId()) {
-////            throw new ApiException("Bạn không có quyền cập nhật người được giao nhiệm vụ này", HttpStatus.FORBIDDEN);
-//            throw new ApiException(HttpStatus.FORBIDDEN.value(), "Bạn không có quyền cập nhật người được giao nhiệm vụ này");
-//        }
-//
-//        // Clear assignees hiện tại
-//        task.getAssignees().clear();
-//
-//        // Thêm assignees mới nếu có
-//        if (request.getAssigneeIds() != null && !request.getAssigneeIds().isEmpty()) {
-//            List<User> assignees = new ArrayList<>();
-//            for (Integer assigneeId : request.getAssigneeIds()) {
-//                userRepository.findById(assigneeId).ifPresent(assignees::add);
-//            }
-//
-//            if (assignees.size() != request.getAssigneeIds().size()) {
-////                throw new ApiException("Một số người được giao không tìm thấy", HttpStatus.BAD_REQUEST);
-//                throw new ApiException(HttpStatus.BAD_REQUEST.value(), "Một số người được giao không tìm thấy");
-//            }
-//            task.setAssignees(new HashSet<>(assignees));
-//        }
-//
-//        Task updatedTask = taskRepository.save(task);
-//        return mapToTaskResponse(updatedTask);
-//    }
-//
-//    @Override
-//    public void deleteTask(Integer taskId) throws ApiException {
-//        Task task = taskRepository.findById(taskId)
-////                .orElseThrow(() -> new ApiException("Không tìm thấy nhiệm vụ", HttpStatus.NOT_FOUND));
-//                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND.value(), "Không tìm thấy nhiệm vụ"));
-//
-//        // Kiểm tra quyền: chỉ người tạo mới có thể xóa
-//        User currentUser = SecurityUtil.getCurrentUser();
-//        if (task.getCreatedBy().getId() != currentUser.getId()) {
-////            throw new ApiException("Bạn không có quyền xóa tác vụ này", HttpStatus.FORBIDDEN);
-//            throw new ApiException(HttpStatus.FORBIDDEN.value(), "Bạn không có quyền xóa tác vụ này");
-//        }
-//
-//        taskRepository.delete(task);
-//    }
-//
     private TaskResponse mapToTaskResponse(Task task) {
         List<UserResponse> assigneeResponses = task.getAssignees().stream()
                 .map(this::mapToUserResponse)
@@ -220,7 +193,7 @@ public TaskResponse updateTaskStatus(Integer taskId, TaskUpdateStatusRequest req
                 .updatedAt(task.getUpdatedAt().toString())
                 .build();
     }
-//
+    //
     private UserResponse mapToUserResponse(User user) {
         return UserResponse.builder()
                 .id((int)user.getId())

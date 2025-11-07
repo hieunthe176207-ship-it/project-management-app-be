@@ -10,10 +10,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class MessageResponseDto {
-    public int id;
-    public String senderId;
+    public Integer id;
+    public Integer senderId;
+    public String senderEmail;
     public String senderName;
     public String avatarUrl;
-    public String text;
+    public String content;
+    public int groupId;
     public String timestamp;
 }

@@ -3,13 +3,12 @@ package com.fpt.project.dto.request;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProjectCreateRequest {
-    private String name;
-    private String description;
-    private String deadline;
-    private int isPublic;
+public class UpdateGroupChatRequest {
+    MultipartFile avatar;
+    String name;
 }
