@@ -21,4 +21,6 @@ public class ProjectResponseDto {
     private int isPublic;
     private int countJoinRequest;
     private List<UserResponse> members;
+    private String progress;
+    private boolean isLate;
 }

@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +29,7 @@ public class MessageServiceImpl implements MessageService {
     private final SecurityUtil securityUtil;
     private final ProjectMemberRepository projectMemberRepository;
     private final SimpMessagingTemplate messaging;
-    private final NotificationRepository notificationRepository;
+
 
     @Override
     public void sendMessage(MessageRequestDto data) throws FirebaseMessagingException, ApiException {
@@ -90,22 +91,13 @@ public class MessageServiceImpl implements MessageService {
 
         for (User u : activeUsers) {
             // Lưu thông báo
-            Notification notification = new Notification();
-            notification.setSender(user);
-            notification.setTitle("Bạn có tin nhắn mới ở " + chatGroup.getName());
-            notification.setContent(dto.getSenderName() + ": " + dto.getContent());
-            notification.setType(NotificationType.MESSAGE);
-            notification.setUser(u);
-            notificationRepository.save(notification);
-
             // Đẩy notify qua STOMP riêng từng user
-            messaging.convertAndSend("/topic/notify/" + u.getId(),
+            messaging.convertAndSend("/topic/notify/message/" + u.getId(),
                     NotificationResponseDto.builder()
-                            .id(notification.getId())
-                            .title(notification.getTitle())
-                            .content(notification.getContent())
-                            .type(notification.getType().name())
-                            .createdAt(notification.getCreatedAt().toString())
+                            .title("Bạn có tin nhắn mới ở " + chatGroup.getName())
+                            .content(dto.getSenderName() + ": " + dto.getContent())
+                            .type(NotificationType.MESSAGE.toString())
+                            .createdAt(LocalDateTime.now().toString())
                             .sender(UserResponse.builder()
                                     .displayName(user.getDisplayName())
                                     .email(user.getEmail())
@@ -125,9 +117,7 @@ public class MessageServiceImpl implements MessageService {
                         "Bạn có tin nhắn mới ở " + chatGroup.getName(),
                         dto.getSenderName() + ": " + dto.getContent(),
                         Map.of(
-                                "groupId", String.valueOf(chatGroup.getId()),
-                                "senderName", user.getDisplayName(),
-                                "content", dto.getContent(),
+                                "id", String.valueOf(chatGroup.getId()),
                                 "type", "MESSAGE"
                         )
                 );

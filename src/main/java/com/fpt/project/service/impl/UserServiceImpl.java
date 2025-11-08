@@ -1,5 +1,6 @@
 package com.fpt.project.service.impl;
 
+import com.fpt.project.dto.request.ChangePasswordRequest;
 import com.fpt.project.dto.request.UpdateAccountRequest;
 import com.fpt.project.dto.response.UserResponse;
 import com.fpt.project.entity.User;
@@ -10,6 +11,7 @@ import com.fpt.project.service.UserService;
 import com.fpt.project.util.SecurityUtil;
 import com.fpt.project.util.Util;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -22,6 +24,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final SecurityUtil securityUtil;
     private final ProjectMemberRepository projectMemberRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserResponse getAccount() throws ApiException {
@@ -80,6 +83,23 @@ public class UserServiceImpl implements UserService {
         }
         User user = userRepository.findByEmail(email);
         user.setTokenFcm(token);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void changePassword(ChangePasswordRequest changePasswordRequest) throws ApiException {
+        String email = securityUtil.getEmailRequest();
+        if (email == null) {
+            throw new ApiException(400, "Tài khoản không tồn tại");
+        }
+        User user = userRepository.findByEmail(email);
+        if (!passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())){
+            throw new ApiException(400, "Mật khẩu cũ không đúng");
+        }
+        if(!changePasswordRequest.getNewPassword().equals(changePasswordRequest.getConfirmPassword())){
+            throw new ApiException(400, "Mật khẩu xác nhận không khớp");
+        }
+        user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
         userRepository.save(user);
     }
 }

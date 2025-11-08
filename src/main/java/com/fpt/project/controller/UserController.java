@@ -1,6 +1,7 @@
 package com.fpt.project.controller;
 
 import com.fpt.project.dto.ResponseSuccess;
+import com.fpt.project.dto.request.ChangePasswordRequest;
 import com.fpt.project.dto.request.UpdateAccountRequest;
 import com.fpt.project.dto.response.UserResponse;
 import com.fpt.project.exception.ApiException;
@@ -53,6 +54,15 @@ public class UserController {
         return ResponseEntity.ok(ResponseSuccess.builder()
                 .code(200)
                 .message("Cập nhật token FCM thành công")
+                .build());
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<ResponseSuccess<?>> changePassword(@RequestBody ChangePasswordRequest data) throws ApiException {
+        userService.changePassword(data);
+        return ResponseEntity.ok(ResponseSuccess.builder()
+                .code(200)
+                .message("Đổi mật khẩu thành công")
                 .build());
     }
 

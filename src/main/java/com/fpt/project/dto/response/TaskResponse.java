@@ -3,23 +3,30 @@ package com.fpt.project.dto.response;
 import com.fpt.project.constant.TaskStatus;
 import com.fpt.project.entity.Task;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class TaskResponse {
-    private Integer id;
+    private Long id;
     private String title;
     private String description;
     private String dueDate;
-    private String status;
-
-    private ProjectResponse project;
+    private TaskStatus status;
+    private Long projectId;
     private UserResponse createdBy;
-    private Set<UserResponse> assignees;
+    private List<UserResponse> assignees;
+    private String createdAt;
+    private String updatedAt;
+
+
+    public TaskResponse(Task task) {
+    }
 }
