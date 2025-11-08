@@ -304,6 +304,7 @@ public class TaskServiceImpl implements TaskService { // Không báo lỗi nữa
                 .description(task.getDescription())
                 .dueDate(task.getDueDate().toString())
                 .status(task.getStatus().toString())
+                .projectId(task.getProject().getId())
                 .assignees(task.getAssignees().stream()
                         .map(u -> {
                             ProjectMember pm = projectMemberRepository.findUserByProjectIdAndUserId(task.getProject().getId(), u.getId());
