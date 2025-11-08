@@ -1,5 +1,6 @@
 package com.fpt.project.service;
 
+import com.fpt.project.dto.request.ChangePasswordRequest;
 import com.fpt.project.dto.request.UpdateAccountRequest;
 import com.fpt.project.dto.response.UserResponse;
 import com.fpt.project.exception.ApiException;
@@ -13,4 +14,5 @@ public interface UserService {
     List<UserResponse> getAllUsers(int projectId) throws ApiException;
 
     void updateTokenFcm(String token);
+    void changePassword(ChangePasswordRequest changePasswordRequest) throws ApiException;
 }

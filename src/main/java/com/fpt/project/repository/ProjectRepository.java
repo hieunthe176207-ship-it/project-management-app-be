@@ -15,6 +15,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
         from Project p
         left join p.projectMembers pm
         where pm.user.email = :email
+        AND pm.status = 'ACTIVE'
     """)
     List<Project> findAllByUserEmail(@Param("email") String email);
 
@@ -27,6 +28,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
         from ProjectMember pm
         join pm.user u
         where pm.project.id = :projectId
+        AND pm.status = 'ACTIVE'
         order by u.displayName asc
     """)
     List<UserResponse> findUsersByIdProject(Integer projectId);
@@ -35,12 +37,28 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
     select p
     from Project p
     where p.isPublic = 1
-    and p.id not in (
-        select pm.project.id
-        from ProjectMember pm
-        where pm.user.id = :userId
-    )
+      and not exists (
+            select 1
+            from ProjectMember pm
+            where pm.project = p
+              and pm.user.id = :userId
+              and pm.status = 'ACTIVE'
+        )
 """)
     List<Project> findAllPublicProjectsNotJoinedByUser(@Param("userId") Integer userId);
+
+    @Query("""
+    select distinct p
+    from Project p
+    left join p.projectMembers pm
+    where (p.isPublic = 1 or pm.user.id = :userId)
+      and lower(p.name) like concat('%', lower(:keyword), '%')
+""")
+    List<Project> findAllPublicOrJoinedProjects(
+            @Param("userId") Integer userId,
+            @Param("keyword") String keyword
+    );
+
+
 
 }

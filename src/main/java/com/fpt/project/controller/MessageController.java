@@ -6,6 +6,7 @@ import com.fpt.project.dto.request.MessageRequestDto;
 import com.fpt.project.dto.response.GroupUpdateEvent;
 import com.fpt.project.dto.response.MessageResponseDto;
 import com.fpt.project.entity.User;
+import com.fpt.project.exception.ApiException;
 import com.fpt.project.repository.ChatGroupRepository;
 import com.fpt.project.repository.ProjectMemberRepository;
 import com.fpt.project.service.MessageService;
@@ -22,8 +23,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.List;
-
 
 @Slf4j
 @Controller
@@ -32,19 +31,17 @@ import java.util.List;
 public class MessageController {
 
     private final MessageService messageService;
-    private final SimpMessagingTemplate messaging;
-    private final ProjectMemberRepository projectMemberRepository;
-    private final ChatGroupRepository chatGroupRepository;
+
 
 
     @MessageMapping("/chat")
-    public void handleChat(MessageRequestDto data) throws FirebaseMessagingException {
+    public void handleChat(MessageRequestDto data) throws FirebaseMessagingException, ApiException {
         messageService.sendMessage(data);
 
     }
 
     @GetMapping("/get-all/{id}")
-    public ResponseEntity<?> getAllMessages(@PathVariable int id) {
+    public ResponseEntity<?> getAllMessages(@PathVariable int id) throws ApiException {
         return ResponseEntity.ok(ResponseSuccess.builder()
                 .data(messageService.getMessagesByChatGroupId(id))
                         .message("Get messages successfully")

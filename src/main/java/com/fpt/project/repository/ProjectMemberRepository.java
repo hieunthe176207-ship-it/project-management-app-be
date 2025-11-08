@@ -12,7 +12,7 @@ import java.util.List;
 public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Integer> {
     boolean existsByProjectIdAndUserId(Integer projectId, Integer userId);
 
-    @Query("SELECT u FROM User u WHERE u.id NOT IN (SELECT pm.user.id FROM ProjectMember pm WHERE pm.project.id = ?1)")
+    @Query("SELECT u FROM User u WHERE u.id NOT IN (SELECT pm.user.id FROM ProjectMember pm WHERE pm.project.id = ?1 AND pm.status = 'ACTIVE')")
     List<User> findUsersWithoutMember(Integer projectId);
 
     @Query("""
@@ -24,7 +24,12 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, In
                                   @Param("userId") Integer userId);
 
 
-    @Query("SELECT pm.user FROM ProjectMember pm WHERE pm.project.id = ?1")
+    @Query("""
+        select pm.user
+        from ProjectMember pm
+        where pm.project.id = :projectId
+          and pm.status = 'ACTIVE'
+    """)
     List<User> findUsersByProjectId(Integer projectId);
 
     @Modifying
@@ -38,6 +43,10 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, In
                           @Param("userId") Integer userId,
                           @Param("maxId") Integer maxId);
 
-    @Query("SELECT pm FROM ProjectMember pm WHERE pm.project.id = ?1 AND pm.user.id = ?2")
+    @Query("SELECT pm FROM ProjectMember pm WHERE pm.project.id = ?1 AND pm.user.id = ?2 AND pm.status = 'ACTIVE'")
     ProjectMember findUserByProjectIdAndUserId(Integer projectId, Integer userId);
+
+
+    @Query("SELECT pm FROM ProjectMember pm WHERE pm.project.id = ?1 AND pm.user.id = ?2")
+    ProjectMember findMemberByProjectId(Integer projectId, Integer userId);
 }

@@ -15,6 +15,7 @@ public interface JoinRequestRepository extends JpaRepository<JoinRequest, Intege
         from JoinRequest jr
         where jr.user.id = :userId
         and jr.project.id = :projectId
+        and jr.status = 'PENDING'
     """)
     JoinRequest   findByUserIdAndProjectId(Integer userId, Integer projectId);
 

@@ -2,10 +2,13 @@ package com.fpt.project.controller;
 
 import com.fpt.project.dto.ResponseSuccess;
 import com.fpt.project.dto.request.UpdateGroupChatRequest;
+import com.fpt.project.exception.ApiException;
 import com.fpt.project.service.GroupChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RequestMapping("/group-chat")
 @RequiredArgsConstructor
@@ -30,8 +33,9 @@ public class GroupChatController {
                 .message("Đánh dấu tin nhắn đã đọc thành công")
                 .build());
     }
-    @PutMapping("/update")
-    public ResponseEntity<?> updateGroupChat(@ModelAttribute UpdateGroupChatRequest data){
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateGroupChat(@ModelAttribute UpdateGroupChatRequest data, @PathVariable Integer id) throws IOException, ApiException {
+        groupChatService.updateGroupChat(data, id);
         return ResponseEntity.ok(ResponseSuccess.builder()
                         .code(200)
                         .message("Update thành công")

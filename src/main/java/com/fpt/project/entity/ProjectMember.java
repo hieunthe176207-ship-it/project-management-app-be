@@ -1,5 +1,6 @@
 package com.fpt.project.entity;
 
+import com.fpt.project.constant.MemberStatus;
 import com.fpt.project.constant.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -23,6 +24,9 @@ public class ProjectMember extends BaseEntity {
     // Có thể thêm các trường khác như role, joinedDate, etc.
     @Enumerated(EnumType.STRING)
     Role role;
+
+    @Enumerated(EnumType.STRING)
+    MemberStatus status;
 
     private int lastReadMessageId = 0;
 }

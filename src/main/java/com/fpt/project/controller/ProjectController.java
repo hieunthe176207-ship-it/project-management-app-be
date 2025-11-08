@@ -2,10 +2,13 @@ package com.fpt.project.controller;
 
 import com.fpt.project.dto.ResponseSuccess;
 import com.fpt.project.dto.request.ProjectCreateRequest;
+import com.fpt.project.dto.request.UpdateProjectRequest;
 import com.fpt.project.dto.response.ProjectResponseDto;
+import com.fpt.project.dto.response.SearchResponseDto;
 import com.fpt.project.entity.Project;
 import com.fpt.project.exception.ApiException;
 import com.fpt.project.service.ProjectService;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -60,7 +63,7 @@ public class ProjectController {
     }
 
     @PostMapping("/add-members/{projectId}")
-    public ResponseEntity<ResponseSuccess<Void>> addMembersToProject(@PathVariable Integer projectId, @RequestBody List<Integer> userIds) throws ApiException {
+    public ResponseEntity<ResponseSuccess<Void>> addMembersToProject(@PathVariable Integer projectId, @RequestBody List<Integer> userIds) throws ApiException, FirebaseMessagingException {
         projectService.addMembersToProject(projectId, userIds);
         return ResponseEntity.ok(ResponseSuccess.<Void>builder()
                 .code(200)
@@ -69,20 +72,14 @@ public class ProjectController {
     }
 
     @PatchMapping("/update/{id}")
-    public ResponseEntity<?> updateMemberRole(@RequestParam("role") int role){
+    public ResponseEntity<?> updateMemberRole(@RequestParam("role") int role, @PathVariable int id, @RequestParam("userId") int userId) throws ApiException, FirebaseMessagingException {
+        projectService.updateRoleMember(id, userId, role);
         return ResponseEntity.ok(ResponseSuccess.<Void>builder()
                 .code(200)
                 .message("Update member success")
                 .build());
     }
 
-    @DeleteMapping("/delete-member/{id}")
-    public ResponseEntity<?> deleteMember(@RequestParam("role") int role, @PathVariable int id){
-        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
-                .code(200)
-                .message("Update member success")
-                .build());
-    }
 
     @DeleteMapping("/delete-project/{id}")
     public ResponseEntity<?> deleteProject(@PathVariable int id){
@@ -103,7 +100,7 @@ public class ProjectController {
     }
 
     @PostMapping("/join-request")
-    public ResponseEntity<ResponseSuccess<Void>> joinPublicProject(@RequestParam Integer projectId) throws ApiException {
+    public ResponseEntity<ResponseSuccess<Void>> joinPublicProject(@RequestParam Integer projectId) throws ApiException, FirebaseMessagingException {
         projectService.requestJoinPublicProject(projectId);
         return ResponseEntity.ok(ResponseSuccess.<Void>builder()
                 .code(200)
@@ -124,11 +121,45 @@ public class ProjectController {
     public ResponseEntity<ResponseSuccess<Void>> handleJoinRequest(
             @RequestParam Integer projectId,
             @RequestParam Integer userId,
-            @RequestParam boolean isApproved) throws ApiException {
+            @RequestParam boolean isApproved) throws ApiException, FirebaseMessagingException {
         projectService.handleJoinRequest(projectId, userId, isApproved);
         return ResponseEntity.ok(ResponseSuccess.<Void>builder()
                 .code(200)
                 .message("Join request handled successfully")
                 .build());
     }
+
+    @DeleteMapping("/remove-member/{projectId}/{userId}")
+    public ResponseEntity<ResponseSuccess<Void>> removeMember(
+            @PathVariable Integer projectId,
+            @PathVariable Integer userId) throws ApiException, FirebaseMessagingException {
+        projectService.deleteMember(projectId, userId);
+        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
+                .code(200)
+                .message("Member removed successfully")
+                .build());
+    }
+
+    @GetMapping("/search-global")
+    public ResponseEntity<?> searchProjectsGlobally(@RequestParam String keyword) throws ApiException {
+        SearchResponseDto data = projectService.searchGlobally(keyword);
+        return ResponseEntity.ok(ResponseSuccess.<SearchResponseDto>builder()
+                .code(200)
+                .message("Projects retrieved successfully")
+                .data(data)
+                .build());
+    }
+
+    @PutMapping("/update-project/{projectId}")
+    public ResponseEntity<ResponseSuccess<Void>> updateProject(
+            @PathVariable Integer projectId,
+            @RequestBody UpdateProjectRequest updateProjectRequest) throws ApiException {
+        // Logic to update a project
+        projectService.UpdateProject(projectId, updateProjectRequest);
+        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
+                .code(200)
+                .message("Project updated successfully")
+                .build());
+    }
+
 }

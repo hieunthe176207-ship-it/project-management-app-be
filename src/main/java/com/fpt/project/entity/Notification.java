@@ -16,6 +16,9 @@ public class Notification extends BaseEntity{
     private Boolean isRead = false;
     @Enumerated(EnumType.STRING)
     private NotificationType type;
+
+    private Integer targetId;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;

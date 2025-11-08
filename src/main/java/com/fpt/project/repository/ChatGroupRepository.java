@@ -20,6 +20,7 @@ public interface ChatGroupRepository extends JpaRepository<ChatGroup, Integer> {
     JOIN c.project p
     JOIN p.projectMembers pm
     WHERE pm.user.id = :userId
+    AND pm.status = 'ACTIVE'
 """)
     List<ChatGroupResponse> findByUser(@Param("userId") Integer userId);
 
