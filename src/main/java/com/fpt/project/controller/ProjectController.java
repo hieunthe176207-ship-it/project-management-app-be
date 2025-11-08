@@ -81,14 +81,6 @@ public class ProjectController {
     }
 
 
-    @DeleteMapping("/delete-project/{id}")
-    public ResponseEntity<?> deleteProject(@PathVariable int id){
-        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
-                .code(200)
-                .message("Update member success")
-                .build());
-    }
-
     @GetMapping("/public-projects")
     public ResponseEntity<?> getAllPublicProjects() throws ApiException {
         List<ProjectResponseDto> projects = projectService.getAllPublicProjects();
@@ -159,6 +151,15 @@ public class ProjectController {
         return ResponseEntity.ok(ResponseSuccess.<Void>builder()
                 .code(200)
                 .message("Project updated successfully")
+                .build());
+    }
+
+    @DeleteMapping("/delete-project/{projectId}")
+    public ResponseEntity<ResponseSuccess<Void>> deleteProject(@PathVariable Integer projectId) throws ApiException {
+        projectService.deleteProject(projectId);
+        return ResponseEntity.ok(ResponseSuccess.<Void>builder()
+                .code(200)
+                .message("Project deleted successfully")
                 .build());
     }
 

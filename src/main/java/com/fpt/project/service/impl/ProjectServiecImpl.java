@@ -824,4 +824,23 @@ public class ProjectServiecImpl implements ProjectService {
         projectRepository.save(project);
     }
 
+    @Transactional
+    @Override
+    public void deleteProject(int projectId) throws ApiException {
+        String email = securityUtil.getEmailRequest();
+        User currentUser = userRepository.findByEmail(email);
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ApiException(404, "Dự án không tồn tại"));
+        ProjectMember member = projectMemberRepository.findUserByProjectIdAndUserId(projectId, currentUser.getId());
+        if (member == null || member.getRole() != Role.OWNER) {
+            throw new ApiException(403, "Bạn không có quyền xóa dự án này");
+        }
+
+        if(member.getStatus() == MemberStatus.REMOVED){
+            throw new ApiException(403, "Bạn đã bị xóa khỏi dự án này");
+        }
+
+        projectRepository.delete(project);
+    }
+
 }

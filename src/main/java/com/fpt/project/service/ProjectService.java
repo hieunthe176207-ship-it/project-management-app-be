@@ -34,4 +34,6 @@ public interface ProjectService {
     SearchResponseDto searchGlobally(String keyword) throws ApiException;
 
     void UpdateProject(int id, UpdateProjectRequest updateProjectRequest) throws ApiException;
+
+    void deleteProject(int projectId) throws ApiException;
 }
