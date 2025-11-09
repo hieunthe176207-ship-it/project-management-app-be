@@ -312,9 +312,6 @@ public class ProjectServiecImpl implements ProjectService {
         if (projectMember == null) {
             throw new ApiException(403, "Bạn không có quyền truy cập dự án này");
         }
-        if(projectMember.getStatus() == MemberStatus.REMOVED){
-            throw new ApiException(403, "Bạn đã bị xóa khỏi dự án này");
-        }
         return projectRepository.findUsersByIdProject(projectId);
     }
 

@@ -10,19 +10,21 @@ import java.util.List;
 
 public interface ChatGroupRepository extends JpaRepository<ChatGroup, Integer> {
 
-    @Query("""
-    SELECT new com.fpt.project.dto.response.ChatGroupResponse(
-        c.id,
-        c.name,
-        c.avatar
-    )
-    FROM ChatGroup c
-    JOIN c.project p
-    JOIN p.projectMembers pm
-    WHERE pm.user.id = :userId
-    AND pm.status = 'ACTIVE'
-""")
-    List<ChatGroupResponse> findByUser(@Param("userId") Integer userId);
+    @Query(value = """
+        SELECT g.*
+        FROM chat_groups g
+        JOIN project_member pm
+             ON pm.project_id = g.project_id
+            AND pm.user_id    = :userId
+            AND pm.status     = 'ACTIVE'
+        LEFT JOIN (
+            SELECT m.group_id, MAX(m.created_at) AS last_time
+            FROM message m
+            GROUP BY m.group_id
+        ) lm ON lm.group_id = g.id
+        ORDER BY (lm.last_time IS NULL), lm.last_time DESC
+        """, nativeQuery = true)
+    List<ChatGroup> findAllByUserOrderByLastMsg(@Param("userId") Integer userId);
 
 
     @Query("SELECT c.project.id FROM ChatGroup c WHERE c.id = ?1")

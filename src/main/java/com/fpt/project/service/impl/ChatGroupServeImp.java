@@ -5,6 +5,7 @@ import com.fpt.project.dto.response.ChatGroupResponse;
 import com.fpt.project.dto.response.MessageResponseDto;
 import com.fpt.project.dto.response.UserResponse;
 import com.fpt.project.entity.ChatGroup;
+import com.fpt.project.entity.Message;
 import com.fpt.project.entity.ProjectMember;
 import com.fpt.project.entity.User;
 import com.fpt.project.exception.ApiException;
@@ -16,6 +17,7 @@ import com.fpt.project.service.GroupChatService;
 import com.fpt.project.util.SecurityUtil;
 import com.fpt.project.util.Util;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,39 +39,45 @@ public class ChatGroupServeImp implements GroupChatService {
         String email = securityUtil.getEmailRequest();
         User user = userRepository.findByEmail(email);
 
-        List<ChatGroupResponse> groups = chatGroupRepository.findByUser(user.getId());
-        for (ChatGroupResponse g : groups) {
-            var last = messageRepository.findTopByGroup_IdOrderByIdDesc(g.getId());
-            if (last != null) {
-                g.setLastMessage(MessageResponseDto.builder()
-                        .content(last.getContent())
-                        .timestamp(last.getCreatedAt().toString())
-                        .build());
+        //check user is a member of project
 
-                var s = last.getSender();
-                g.setLastUser(UserResponse.builder()
-                        .id(s.getId())
-                        .displayName(s.getDisplayName())
-                        .email(s.getEmail())
-                        .avatar(s.getAvatar())
-                        .build());
-            }
 
-            Integer projectId = chatGroupRepository.findProjectIdById(g.getId());
-            Integer lastReadId = projectMemberRepository.findLastReadMessageId(projectId, user.getId());
-            int maxMsgId = (last != null) ? last.getId() : 0;
-            g.setHasNew(maxMsgId > (lastReadId != null ? lastReadId : 0));
-        }
+        List<ChatGroup> groups = chatGroupRepository.findAllByUserOrderByLastMsg(user.getId());
 
-        // Sắp xếp theo timestamp giảm dần (message mới nhất lên đầu)
-        groups.sort((g1, g2) -> {
-            if (g1.getLastMessage() == null && g2.getLastMessage() == null) return 0;
-            if (g1.getLastMessage() == null) return 1;
-            if (g2.getLastMessage() == null) return -1;
-            return g2.getLastMessage().getTimestamp().compareTo(g1.getLastMessage().getTimestamp());
-        });
+        List<ChatGroupResponse> response = groups.stream().map(g -> {
+            ChatGroupResponse grpResp = new ChatGroupResponse();
+            grpResp.setId(g.getId());
+            grpResp.setName(g.getName());
+            grpResp.setAvatar(g.getAvatar());
 
-        return groups;
+            // Lấy tin nhắn cuối cùng
+            Message last = messageRepository.findLastMessage(g.getId(), PageRequest.of(0, 1)).stream().findFirst().orElse(null);
+
+            ProjectMember pm = projectMemberRepository.findUserByProjectIdAndUserId(g.getProject().getId(), user.getId());
+            int lastReadId = pm.getLastReadMessageId();
+
+            grpResp.setHasNew(last != null && last.getId() > lastReadId);
+            grpResp.setLastMessage(
+                    last != null ? MessageResponseDto.builder()
+                            .id(last.getId())
+                            .content(last.getContent())
+                            .timestamp(last.getCreatedAt().toString())
+                            .build() : null
+            );
+            grpResp.setLastUser(
+                    last != null ? UserResponse.builder()
+                            .id(last.getSender().getId())
+                            .displayName(last.getSender().getDisplayName())
+                            .avatar(last.getSender().getAvatar())
+                            .build() : null
+            );
+
+            return grpResp;
+        }).toList();
+
+
+
+        return response;
     }
 
     @Transactional
@@ -80,6 +88,11 @@ public class ChatGroupServeImp implements GroupChatService {
 
         // lấy projectId từ group
         Integer projectId = chatGroupRepository.findProjectIdById(groupId);
+
+        ProjectMember pm = projectMemberRepository.findUserByProjectIdAndUserId(projectId, user.getId());
+        if(pm == null){
+            throw new RuntimeException("Người dùng không phải thành viên của dự án");
+        }
 
 
         // lấy id tin cuối của group

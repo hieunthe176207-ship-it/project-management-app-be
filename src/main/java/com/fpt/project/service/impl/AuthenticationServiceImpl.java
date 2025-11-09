@@ -67,7 +67,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             u.setDisplayName(registerRequest.getDisplayName());
             userRepository.save(u);
         } catch (DataIntegrityViolationException e) {
-            throw new ApiException(400, "User đã tồn tại");
+            throw new ApiException(400, "Email đã tồn tại");
         }
     }
 }
